@@ -2,7 +2,7 @@ version: 1
 
 themes:
   journal_clean:
-    font_family: Arial
+    font_family: sans
     text_color: "#222222"
     muted_text_color: "#666666"
     axis_color: "#303030"
@@ -22,7 +22,7 @@ themes:
     despine_right: true
 
   presentation_clean:
-    font_family: Arial
+    font_family: sans
     text_color: "#202020"
     muted_text_color: "#5A5A5A"
     axis_color: "#303030"
@@ -42,6 +42,7 @@ themes:
     despine_right: true
 
 notes:
+  - Use generic sans-serif by default for cross-platform reproducibility; project profiles may request a specific installed font.
   - Font sizes are controlled primarily by output profiles, not themes.
   - Recipes should request a named theme rather than hard-code visual constants.
   - Project-specific overrides are permitted at the edge but should not mutate these defaults.
