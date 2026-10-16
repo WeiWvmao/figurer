@@ -1,0 +1,81 @@
+version: 1
+
+palettes:
+  qualitative_8:
+    type: categorical
+    colors:
+      - "#0072B2"
+      - "#E69F00"
+      - "#009E73"
+      - "#CC79A7"
+      - "#D55E00"
+      - "#56B4E9"
+      - "#F0E442"
+      - "#000000"
+    notes: "Color-vision-aware general categorical palette based on the Okabe-Ito family."
+
+  qualitative_12:
+    type: categorical
+    colors:
+      - "#4E79A7"
+      - "#F28E2B"
+      - "#59A14F"
+      - "#E15759"
+      - "#B07AA1"
+      - "#76B7B2"
+      - "#EDC948"
+      - "#FF9DA7"
+      - "#9C755F"
+      - "#BAB0AC"
+      - "#2F6B8A"
+      - "#8CD17D"
+
+  sequential_blue:
+    type: sequential
+    colors:
+      - "#F7FBFF"
+      - "#DEEBF7"
+      - "#C6DBEF"
+      - "#9ECAE1"
+      - "#6BAED6"
+      - "#4292C6"
+      - "#2171B5"
+      - "#084594"
+
+  sequential_viridis_like:
+    type: sequential
+    colors:
+      - "#440154"
+      - "#46327E"
+      - "#365C8D"
+      - "#277F8E"
+      - "#1FA187"
+      - "#4AC16D"
+      - "#A0DA39"
+      - "#FDE725"
+
+  diverging_blue_red:
+    type: diverging
+    midpoint: 0
+    colors:
+      - "#2166AC"
+      - "#67A9CF"
+      - "#D1E5F0"
+      - "#F7F7F7"
+      - "#FDDBC7"
+      - "#EF8A62"
+      - "#B2182B"
+
+  direction_3:
+    type: categorical
+    colors:
+      negative: "#3B73B9"
+      neutral: "#BDBDBD"
+      positive: "#D64A4A"
+
+policy:
+  - Use semantic identity colors when a category has a stable biological meaning.
+  - Use categorical palettes for arbitrary groups without biological identity.
+  - Prefer perceptually ordered sequential palettes for continuous non-negative variables.
+  - Prefer centered diverging palettes only when a meaningful midpoint exists.
+  - Do not use rainbow/jet for quantitative values.
