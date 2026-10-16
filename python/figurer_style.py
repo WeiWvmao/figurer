@@ -75,12 +75,22 @@ def palette(name: str = "qualitative_8", root: str | Path | None = None):
         raise KeyError(f"Unknown Figurer palette: {name}") from exc
 
 
-def identities(group: str = "cell_classes", root: str | Path | None = None) -> dict[str, str]:
+def identities(
+    group: str = "cell_classes",
+    root: str | Path | None = None,
+    include_aliases: bool = True,
+) -> dict[str, str]:
     cfg = _load_yaml("styles/identities.yml", root)
     try:
-        return dict(cfg[group])
+        out = dict(cfg[group])
     except KeyError as exc:
         raise KeyError(f"Unknown Figurer identity group: {group}") from exc
+
+    if group == "cell_classes" and include_aliases:
+        for alias, canonical in cfg.get("common_aliases", {}).items():
+            if canonical in out:
+                out[alias] = out[canonical]
+    return out
 
 
 def apply_figurer_style(
@@ -137,7 +147,6 @@ def apply_figurer_style(
     colors = palette("qualitative_8", root)
     if isinstance(colors, list):
         from cycler import cycler
-
         mpl.rcParams["axes.prop_cycle"] = cycler(color=colors)
 
 
