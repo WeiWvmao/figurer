@@ -1,0 +1,48 @@
+version: 1
+
+cell_classes:
+  malignant: "#D84A4A"
+  endothelial: "#2A9D8F"
+  mural: "#8B6BBE"
+  fibroblast: "#D98C5F"
+  myeloid: "#A8796D"
+  lymphoid: "#C4A63A"
+  astrocyte: "#5DA5DA"
+  oligodendrocyte: "#4C78A8"
+  opc: "#8CC665"
+  neuron: "#244F8F"
+  epithelial: "#E17C9B"
+  plasma_b: "#F28E2B"
+  uncertain: "#B7B7B7"
+  other: "#D0D0D0"
+
+common_aliases:
+  Tumor: malignant
+  Malignant: malignant
+  EC: endothelial
+  Endothelial: endothelial
+  Mural: mural
+  Fibroblast: fibroblast
+  Myeloid: myeloid
+  TNK: lymphoid
+  T_cell: lymphoid
+  B_cell: lymphoid
+  Astro: astrocyte
+  Oligo: oligodendrocyte
+  OPC: opc
+  OligoOPC: oligodendrocyte
+  Neuron: neuron
+  BPlasma: plasma_b
+  Other_uncertain: uncertain
+
+statistics:
+  positive: "#D64A4A"
+  negative: "#3B73B9"
+  neutral: "#BDBDBD"
+  significant: "#2B2B2B"
+  nonsignificant: "#C9C9C9"
+
+policy:
+  - Identity colors are defaults for recurring biological meanings, not mandatory colors for every project.
+  - Project-specific categories can override or extend this registry without changing core files.
+  - Arbitrary clusters should normally use a qualitative palette rather than borrowing biological identity colors.
