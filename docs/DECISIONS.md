@@ -104,3 +104,20 @@ Stable recipes require reproducible examples and rendered reference figures. Fun
 ### Why
 
 A plotting API can be technically functional while producing poor typography, clipped labels, inconsistent spacing, or unusable manuscript output.
+
+---
+
+## ADR-0008 — Allow recipe-level preferred backends
+
+**Status:** Accepted  
+**Date:** 2026-10-16
+
+### Decision
+
+R and Python remain peer backends, but an individual recipe may declare a **preferred backend** when one ecosystem is materially stronger for that figure class. A fallback backend may still be provided when useful.
+
+Examples may include R/ComplexHeatmap for heavily annotated heatmaps and Python/matplotlib-based rendering for dense spatial overlays tightly coupled to Python analysis objects.
+
+### Why
+
+Artificially forcing every recipe to have perfectly symmetric implementations would create unnecessary maintenance and could lower figure quality. The shared semantic specification is the compatibility contract; backend choice should follow the strongest reliable renderer for the task.
