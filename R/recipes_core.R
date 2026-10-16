@@ -78,7 +78,7 @@ fig_embedding_continuous <- function(
     )
   ) +
     ggplot2::geom_point(size = point_size, alpha = alpha, stroke = 0) +
-    ggplot2::scale_color_gradientn(colors = figurer_palette(palette, root)) +
+    scale_color_figurer_continuous(palette, root = root) +
     theme_figurer(theme, profile, root)
 
   if (equal_aspect) p <- p + ggplot2::coord_equal()
@@ -111,6 +111,10 @@ fig_grouped_distribution <- function(
     root = figurer_root()) {
   .figurer_require("ggplot2")
 
+  tokens <- figurer_theme_tokens(theme, root)
+  out_profile <- figurer_profile(profile, root)
+  line_scale <- out_profile$line_scale %||% 1
+
   mapping <- ggplot2::aes(
     x = !!.figurer_sym(group),
     y = !!.figurer_sym(value),
@@ -123,8 +127,8 @@ fig_grouped_distribution <- function(
     p <- p + ggplot2::geom_boxplot(
       width = 0.28,
       outlier.shape = NA,
-      fill = "white",
-      linewidth = 0.5,
+      fill = tokens$panel_background,
+      linewidth = as.numeric(tokens$axis_line_width_pt) * line_scale,
       alpha = 0.9
     )
   }
@@ -171,6 +175,11 @@ fig_bubble <- function(
     root = figurer_root()) {
   .figurer_require("ggplot2")
 
+  tokens <- figurer_theme_tokens(theme, root)
+  out_profile <- figurer_profile(profile, root)
+  line_scale <- out_profile$line_scale %||% 1
+  grid_color <- grDevices::adjustcolor(tokens$axis_color, alpha.f = 0.12)
+
   ggplot2::ggplot(
     data,
     ggplot2::aes(
@@ -182,11 +191,14 @@ fig_bubble <- function(
   ) +
     ggplot2::geom_point(alpha = 0.9) +
     ggplot2::scale_size(range = size_range) +
-    ggplot2::scale_color_gradientn(colors = figurer_palette(color_palette, root)) +
+    scale_color_figurer_continuous(color_palette, root = root) +
     theme_figurer(theme, profile, root) +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
-      panel.grid.major = ggplot2::element_line(color = "#ECECEC", linewidth = 0.35)
+      panel.grid.major = ggplot2::element_line(
+        color = grid_color,
+        linewidth = as.numeric(tokens$reference_line_width_pt) * line_scale
+      )
     )
 }
 
