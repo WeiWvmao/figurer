@@ -1,0 +1,47 @@
+version: 1
+
+themes:
+  journal_clean:
+    font_family: Arial
+    text_color: "#222222"
+    muted_text_color: "#666666"
+    axis_color: "#303030"
+    background: "#FFFFFF"
+    panel_background: "#FFFFFF"
+    grid: none
+    axis_line_width_pt: 0.65
+    tick_line_width_pt: 0.55
+    tick_length_pt: 3.0
+    data_line_width_pt: 1.15
+    reference_line_width_pt: 0.65
+    point_edge_width_pt: 0.45
+    panel_label_weight: bold
+    title_weight: bold
+    legend_frame: false
+    despine_top: true
+    despine_right: true
+
+  presentation_clean:
+    font_family: Arial
+    text_color: "#202020"
+    muted_text_color: "#5A5A5A"
+    axis_color: "#303030"
+    background: "#FFFFFF"
+    panel_background: "#FFFFFF"
+    grid: none
+    axis_line_width_pt: 0.9
+    tick_line_width_pt: 0.75
+    tick_length_pt: 4.0
+    data_line_width_pt: 1.8
+    reference_line_width_pt: 0.9
+    point_edge_width_pt: 0.6
+    panel_label_weight: bold
+    title_weight: bold
+    legend_frame: false
+    despine_top: true
+    despine_right: true
+
+notes:
+  - Font sizes are controlled primarily by output profiles, not themes.
+  - Recipes should request a named theme rather than hard-code visual constants.
+  - Project-specific overrides are permitted at the edge but should not mutate these defaults.
