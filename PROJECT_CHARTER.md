@@ -2,366 +2,229 @@
 
 > **Status: highest-level project specification.**
 >
-> This file is the source of truth for Figurer's architecture and design constraints. Implementation details may evolve; changes that conflict with this charter require an explicit charter update and rationale in `docs/DECISIONS.md`.
+> This file is the source of truth for Figurer. The implementation may evolve quickly; durable changes to these principles should be reflected here and in `docs/DECISIONS.md`.
 
 ## 1. Mission
 
-Figurer is a reusable, versioned scientific-figure system for computational biology and biomedical research.
+Figurer exists for one practical reason: **make consistently excellent scientific figures with minimal project-specific plotting work**.
 
-Its purpose is not merely to "make plots look nicer". It should convert scientific intent + standardized data + an explicit visual specification into publication-grade, presentation-grade, reproducible figures across projects.
+It is a reusable visualization toolbox for computational biology, spatial omics, single-cell analysis, and biomedical/clinical research. Other repositories should be able to clone/source Figurer and obtain a coherent visual language, reliable export settings, strong plotting recipes, and AI instructions without rebuilding plotting conventions from scratch.
 
-The repository should be callable by other projects without copy-pasting plotting code, and should preserve a coherent visual language while allowing multiple named styles.
+Figurer is not intended to become a large visualization framework unless repeated real-world use proves that such infrastructure is necessary.
 
-## 2. Core design constraints
+## 2. Founding principles
 
-### 2.1 Reusability first
+### 2.1 Integrate before inventing
 
-- No project-specific paths, sample IDs, cohort names, genes, labels, colors, or assumptions may be embedded in generic plotting code.
-- Plotting functions consume explicit data and configuration inputs.
-- Other repositories should depend on a tagged Figurer version rather than copying source files.
-- Public APIs must remain stable within a major version.
+Do not reimplement capabilities that mature open-source packages already solve well.
 
-### 2.2 Style is data, not scattered code
+Figurer should primarily **curate, configure, compose, and standardize** strong upstream tools. Examples include:
 
-All visual styling must be defined in centralized style/profile configuration, not hard-coded independently inside plotting functions.
+- R: `ggplot2`, `patchwork`, `cowplot`, `ComplexHeatmap`, `ggrepel`, `ggdist`, `ggbeeswarm`, `ggsci`, `scCustomize`, `dittoSeq`
+- Python: `matplotlib`, `scanpy`, `plotnine`, `SciencePlots`, `Marsilea`, `PyComplexHeatmap`
 
-Style includes, at minimum:
+Custom code is justified when it provides one of the following:
 
-- typography and font hierarchy
-- categorical, sequential, and diverging palettes
-- semantic color registries
-- line widths, marker sizes, alpha, borders
-- axes, ticks, grids, backgrounds
-- legend rules
-- panel labels
-- spacing and margins
-- annotation defaults
+1. a reusable scientific plotting recipe not already available;
+2. a centralized style/profile layer;
+3. reliable composition/export behavior;
+4. an adapter between project data and a strong upstream plotting tool;
+5. a figure-quality or AI workflow that existing packages do not provide.
 
-A plotting function may request semantic tokens such as `text.primary`, `line.axis`, `celltype.malignant`, or `palette.diverging`; it should not invent its own visual constants.
+### 2.2 Thin core, useful immediately
 
-### 2.3 Separate scientific semantics from rendering
+The repository should stay light enough to improve while other research projects continue.
 
-The system must separate five concerns:
+- Prefer small utilities and recipes over building a new plotting engine.
+- Prefer sourcing/cloning the repository over requiring packaging infrastructure during early development.
+- Do not block useful plotting work on a universal cross-project API.
+- Do not require R/Python feature parity.
+- Introduce formal interfaces only after repeated use shows a stable pattern.
 
-1. **Scientific semantics** — what is being shown and what variables mean.
-2. **Data contract** — the standardized columns/matrices/objects required by a recipe.
-3. **Figure recipe** — mapping from scientific intent to geometries, annotations, and layout.
-4. **Style/profile** — visual language and output target.
-5. **Backend renderer** — R or Python implementation.
+### 2.3 Style is centralized data
 
-Changing a theme should not require rewriting analysis logic. Changing from R to Python should not require changing the scientific meaning of a figure.
+Fonts, line widths, marker defaults, palettes, panel labels, legend conventions, spacing, and export dimensions must live in centralized style/profile files rather than being independently invented inside each plot.
 
-### 2.4 Language-agnostic specification, multi-backend rendering
+A recipe may override style only when the geometry scientifically requires it.
 
-Figurer must not be designed around the assumption that one language is inherently superior for scientific graphics.
+### 2.4 Theme and output profile are separate
 
-- Shared configuration and schemas should use language-neutral formats such as YAML/JSON/TOML where practical.
-- R and Python backends may use their strongest native ecosystems.
-- Backend-specific features are allowed, but the public semantic interface should remain as consistent as practical.
-- Visual equivalence is required; pixel identity is not.
+A **theme** is the visual language. A **profile** is the physical destination.
 
-Likely backend ecosystems:
+Initial themes:
 
-- **R:** ggplot2, ComplexHeatmap, patchwork/cowplot, ggraph and domain-specific extensions.
-- **Python:** matplotlib, seaborn/scanpy-compatible layers, PyComplexHeatmap and domain-specific extensions.
+- `journal_clean`
+- `presentation_clean`
 
-### 2.5 Composition is a first-class feature
-
-Publication quality is not achieved by styling individual plots alone. Figurer must support figure-level composition:
-
-- multi-panel layouts
-- aligned axes and panel widths
-- shared legends
-- panel labels (a, b, c...)
-- figure-level titles/subtitles/captions
-- consistent whitespace
-- inset plots
-- image + quantitative-panel composition
-- vector-safe annotations
-
-The unit of quality is the **whole figure**, not only the individual chart.
-
-### 2.6 Multiple output profiles
-
-The same scientific figure may need different typography and geometry for different destinations. Output target must therefore be an explicit parameter.
-
-Initial profiles should include:
+Initial profiles:
 
 - `paper_single_column`
 - `paper_double_column`
 - `paper_full_width`
 - `slides_16x9`
-- `poster`
 
-Profiles control dimensions, base font size, line widths, marker scaling, legend density, and export settings without altering scientific content.
+The same plot should be switchable from paper to presentation output without changing its scientific content.
 
-### 2.7 Vector-first, reproducible export
+### 2.5 No universal input object
 
-- Prefer PDF/SVG for line art and plots.
-- Support high-DPI PNG/TIFF where raster output is appropriate.
-- Explicitly control physical dimensions.
-- Embed or safely reference fonts where permitted.
-- Record the Figurer version, backend, theme, profile, and export settings in machine-readable metadata where practical.
-- Randomized elements must accept an explicit seed.
+Scientific plotting data are heterogeneous. Figurer will not force every project into one master data structure.
+
+Recipes should accept the **simplest natural contract for that figure**:
+
+- tidy/long data frames for ordinary statistical plots;
+- matrices plus annotations for heatmaps;
+- coordinate tables for spatial/embedding plots;
+- survival/model-summary tables for clinical plots;
+- native objects when a mature package already has a useful object-aware plotting API.
+
+Project-specific adapters should transform local objects into these small recipe-level contracts.
+
+### 2.6 Use the strongest backend for the figure
+
+R and Python are both supported, but they are not required to mirror each other.
+
+Default preference:
+
+- ordinary statistical / grouped / annotated plots: R + `ggplot2`
+- whole-figure composition in R: `patchwork` / `cowplot`
+- heavily annotated genomic heatmaps: R + `ComplexHeatmap`
+- single-cell figures in R: native `ggplot2` plus `scCustomize`/`dittoSeq` where useful
+- Python-native single-cell/spatial workflows: `scanpy`/`matplotlib`
+- Python scientific styling: native Matplotlib configuration, optionally informed by `SciencePlots`
+- Python complex composable heatmaps: `Marsilea` or `PyComplexHeatmap`
+- Python grammar-of-graphics workflows: `plotnine` when it reduces custom Matplotlib code
+
+Backend choice follows output quality and integration cost, not ideology.
+
+### 2.7 Composition matters as much as individual panels
+
+High-quality figures require attention to:
+
+- panel hierarchy and lettering;
+- aligned plot regions;
+- shared legends;
+- whitespace and relative panel sizes;
+- image + quantitative-plot integration;
+- consistent typography;
+- annotations and callouts;
+- target physical dimensions.
+
+A set of individually acceptable plots can still make a poor figure.
 
 ### 2.8 Scientific correctness outranks aesthetics
 
-Figurer may improve visual hierarchy, but must not silently alter scientific meaning.
+Styling must not silently alter the result. No hidden filtering, inappropriate smoothing, misleading axis treatment, fabricated uncertainty, or aesthetics-driven manipulation of scientific values.
 
-Examples:
+### 2.9 Vector-first export
 
-- no truncating quantitative axes unless explicitly requested and clearly encoded
-- no inappropriate interpolation or smoothing
-- no hidden filtering
-- no misleading area/volume encodings
-- no default rainbow/jet palettes for quantitative data
-- uncertainty/statistical annotations must be tied to explicit input data or analysis output
+Prefer PDF/SVG for line art and mixed figures. Use high-resolution raster output for dense point clouds, histology, or other raster-native panels. Dimensions must be explicit and profile-driven.
 
-## 3. Repository architecture
+### 2.10 AI should reuse, not improvise endlessly
 
-The intended architecture is:
+AI agents working in downstream projects should first inspect Figurer and use an existing theme, profile, recipe, or upstream-package pattern. Ad-hoc plotting code is acceptable when the figure is genuinely new, but useful patterns should then be promoted back into Figurer.
+
+## 3. Repository model
 
 ```text
 figurer/
-├─ PROJECT_CHARTER.md          # highest-level source of truth
-├─ AGENTS.md                   # rules for AI/code agents
+├─ PROJECT_CHARTER.md
+├─ AGENTS.md
 ├─ README.md
-├─ pyproject.toml              # Python package metadata
-├─ python/figurer/             # Python backend
-├─ R/                          # R backend/package code
-├─ styles/                     # themes, palettes, semantic color registries
-│  ├─ themes/
-│  ├─ palettes/
-│  └─ identities/
-├─ profiles/                   # paper / slide / poster output profiles
-├─ schemas/                    # language-neutral configuration/data schemas
-├─ recipes/                    # plot and figure recipes
-├─ components/                 # reusable legends, annotations, panel helpers
-├─ skills/                     # AI-facing figure skills and instructions
-├─ prompts/                    # reusable prompts for figure planning/review
-├─ gallery/                    # reference figures + minimal reproducible examples
-├─ tests/                      # functional + visual regression tests
 ├─ docs/
-│  ├─ DECISIONS.md             # architectural decision log
-│  ├─ STYLE_SYSTEM.md
-│  ├─ API.md
-│  └─ CONTRIBUTING.md
-└─ .github/workflows/          # CI for Python/R + rendering checks
+│  ├─ DECISIONS.md
+│  └─ REFERENCE_STACK.md
+├─ styles/
+│  ├─ themes.yml
+│  ├─ palettes.yml
+│  └─ identities.yml
+├─ profiles/
+│  └─ output_profiles.yml
+├─ R/
+│  └─ figurer.R
+├─ python/
+│  └─ figurer_style.py
+├─ recipes/
+│  └─ README.md
+├─ skills/
+│  └─ FIGURE_AGENT.md
+├─ prompts/
+│  └─ FIGURE_REVIEW.md
+└─ gallery/
 ```
 
-The exact directory layout may be refined, but the separation of concerns above is mandatory.
+This is intentionally a **toolbox layout**, not a requirement to build a full package immediately.
 
-## 4. Figure API model
+## 4. Initial recipe priorities
 
-Every reusable figure recipe should conceptually expose the following parameter groups:
+Build only what recurs in current biomedical work.
 
-```text
-data        # values to visualize
-mapping     # semantic roles: x/y/color/fill/group/etc.
-geometry    # plot-specific structure
-annotation  # labels, statistical notes, highlights
-layout      # panel arrangement and relative sizes
-style       # named theme + semantic palette
-profile     # paper/slide/poster target
-export      # format, dimensions, dpi, output path
-```
+### Core
 
-Project-specific scripts should mostly describe **what to show**, while Figurer decides **how to render it consistently**.
-
-A conceptual call may look like:
-
-```text
-render(
-  recipe="embedding.categorical",
-  data=...,
-  mapping=...,
-  theme="journal_clean",
-  profile="paper_double_column",
-  backend="python"
-)
-```
-
-Equivalent R/Python syntax may differ, but the semantic contract should remain recognizable.
-
-## 5. Style system
-
-### 5.1 Named themes
-
-The repository should support multiple coherent named themes rather than a single enforced visual appearance. Example families:
-
-- `journal_clean` — restrained general-purpose manuscript style
-- `cell_like` — dense but highly structured biomedical figure style
-- `nature_like` — minimal, high-contrast manuscript style
-- `presentation_clean` — larger typography and simplified legends for slides
-
-Names such as `cell_like` describe design characteristics and must not imply publisher endorsement or exact imitation.
-
-### 5.2 Semantic identities
-
-Frequently recurring biological entities should optionally use stable semantic identity colors, stored separately from themes. Examples:
-
-- broad cell classes
-- malignant vs non-malignant
-- endothelial / mural / immune / neural lineages
-- positive / negative / neutral statistical direction
-
-Identity registries must be overridable per project and must not force arbitrary colors onto unrelated categorical variables.
-
-### 5.3 Accessibility
-
-Default palettes should be color-vision-aware, grayscale-tolerant where feasible, and interpretable when printed. Red/green-only distinctions should not be the sole encoding for important comparisons.
-
-## 6. Recipe library priorities
-
-The first stable recipe set should target the plots repeatedly needed in computational biology rather than attempting exhaustive coverage.
-
-### Tier 1 — core
-
-- categorical and continuous scatter
-- UMAP/t-SNE/other embeddings
+- categorical/continuous scatter and embedding
+- grouped distribution plots (box/violin/raincloud + raw points)
 - line + uncertainty
-- grouped bar / proportion
-- box/violin/raincloud
-- dot/bubble plot
-- heatmap
-- volcano / MA-style scatter
+- proportion/composition plots
+- dot/bubble plots
+- volcano/MA-style scatter
+- heatmaps
 - multi-panel composition
 
-### Tier 2 — single-cell / spatial
+### Single-cell / spatial
 
-- marker dot plot
-- composition plots
-- pseudobulk summaries
+- UMAP/t-SNE styling
+- marker dot plots
 - program/module heatmaps
 - enrichment bubble plots
 - spatial categorical maps
 - spatial continuous maps
-- histology/image overlays
+- histology overlays
 - neighborhood/adjacency matrices
 
-### Tier 3 — translational/clinical
+### Clinical
 
+- forest plots
 - Kaplan-Meier
-- forest plot
-- ROC / calibration / decision curves
-- longitudinal patient-level trajectories
+- ROC/calibration curves
+- longitudinal patient trajectories
 
-## 7. Gallery-driven development
+## 5. Development rule
 
-Every stable recipe should include a minimal reproducible example and a rendered reference figure in `gallery/`.
+When a new plotting need appears:
 
-A recipe is not considered production-ready until:
+1. identify the scientific message;
+2. check whether a strong upstream package already provides the geometry;
+3. reuse it with Figurer style/profile settings;
+4. write the minimum adapter required for the project data;
+5. promote the solution to a reusable recipe only after it proves useful more than once or clearly represents a common figure grammar.
 
-- the example runs from clean input
-- required data are documented
-- style/profile switching works
-- vector export works when appropriate
-- labels remain readable at target physical dimensions
-- legends are not clipped
-- the figure passes the relevant visual-quality checklist
+Do not create abstraction for abstraction's sake.
 
-## 8. Figure linting and quality gates
+## 6. Near-term plan
 
-Figurer should eventually provide automated or semi-automated figure review. Candidate checks include:
+### v0.1 — immediately useful
 
-- text below minimum physical size
-- clipped labels/legends
-- inconsistent fonts
-- low-contrast text or markers
-- excessive legend categories
-- missing axis units
-- rasterized text where vector text is expected
-- non-semantic hard-coded colors
-- inconsistent panel spacing
-- output size inconsistent with target profile
+- curated upstream visualization stack
+- centralized themes, palettes, biological identities, and output profiles
+- small R and Python style/export helpers
+- AI figure-production skill and figure-review prompt
+- recipe guidance for heterogeneous data inputs
 
-These checks should be advisory unless they affect reproducibility or scientific correctness.
+### v0.2 — learned from real projects
 
-## 9. Dependency and compatibility strategy
+- promote successful plotting patterns from the GBM/spatial and brain-metastasis projects
+- add a small recipe library for the most frequently recurring plots
+- add gallery examples for proven recipes
 
-Cross-project compatibility requires explicit versioning.
+### Later, only if justified
 
-- Use semantic versioning.
-- Downstream projects should pin a Figurer release/tag or commit.
-- Python dependencies should be declared in package metadata and tested in CI.
-- R dependencies should be declared and reproducible (for example via DESCRIPTION/renv-compatible workflows).
-- Avoid requiring a single massive environment containing every optional plotting package.
-- Optional recipe families may declare optional extras.
+- formal installable package/API
+- automatic backend selection
+- visual regression testing
+- figure linting
+- structured cross-language recipe specification
 
-Copy-pasting plotting utilities from Figurer into downstream repositories is an anti-pattern.
-
-## 10. AI-agent integration
-
-AI agents are expected to be major users and contributors.
-
-Agents should be able to:
-
-1. infer an appropriate recipe from a scientific request;
-2. map project data to the recipe data contract;
-3. choose a style/profile explicitly;
-4. render the figure through a supported backend;
-5. run figure linting;
-6. compare output against gallery references;
-7. return both the figure and the exact reproducible configuration/code.
-
-AI prompts and skills must call stable Figurer APIs instead of generating arbitrary plotting code from scratch whenever a suitable recipe exists.
-
-## 11. What Figurer is not
-
-Figurer is not:
-
-- a replacement for statistical analysis pipelines;
-- a dumping ground for one-off scripts copied from publications;
-- a single hard-coded theme;
-- a collection of screenshots without reproducible source code;
-- a reason to force all projects into R or all projects into Python;
-- a mechanism for beautifying misleading or scientifically invalid plots.
-
-## 12. Initial development roadmap
-
-### v0.1 — foundation
-
-- repository architecture
-- schema for theme/profile configuration
-- one default journal theme and one slide theme
-- palette + semantic identity registry
-- Python + R minimal theme loaders
-- export helpers
-- core scatter/embedding, heatmap, dot plot, line plot, and composition recipes
-- gallery examples
-- CI smoke tests
-
-### v0.2 — computational biology core
-
-- single-cell/spatial recipes
-- ComplexHeatmap/PyComplexHeatmap adapters
-- histology/spatial overlay primitives
-- richer annotation and shared-legend composition
-
-### v0.3 — clinical figures + quality control
-
-- survival/forest/ROC/calibration recipes
-- figure linter
-- visual regression tests
-
-### v0.4 — agent-facing figure system
-
-- stable `skills/` interface
-- prompt templates for figure planning, figure review, and manuscript-to-recipe extraction
-- automated recipe selection from structured scientific intent
-
-## 13. Change-control rule
-
-When a new feature is proposed, ask in this order:
-
-1. Is it scientifically reusable?
-2. Is it a **recipe**, a **component**, a **style token**, a **profile**, or a **backend-specific adapter**?
-3. Can project-specific content remain outside the core library?
-4. Can R and Python share the same semantic specification?
-5. Does the feature preserve existing public APIs?
-
-If a change alters the answers encoded in this charter, update this file deliberately and record the rationale in `docs/DECISIONS.md`.
+These are explicitly **not prerequisites** for using Figurer now.
 
 ---
 
-**Founding principle:** Figurer should make high-quality scientific visualization a reusable system rather than a sequence of one-off AI-generated plotting scripts.
+**Founding principle:** reuse the strongest existing visualization ecosystems, centralize visual decisions, and make good scientific figures easier to reproduce than bad ad-hoc ones.
