@@ -25,9 +25,7 @@ figurer_root <- function(start = getwd()) {
 
   current <- normalizePath(start, mustWork = FALSE)
   repeat {
-    if (file.exists(file.path(current, "PROJECT_CHARTER.md"))) {
-      return(current)
-    }
+    if (file.exists(file.path(current, "PROJECT_CHARTER.md"))) return(current)
     parent <- dirname(current)
     if (identical(parent, current)) break
     current <- parent
@@ -49,18 +47,14 @@ figurer_root <- function(start = getwd()) {
 figurer_profile <- function(name = "paper_double_column", root = figurer_root()) {
   cfg <- .figurer_yaml("profiles/output_profiles.yml", root)
   out <- cfg$profiles[[name]]
-  if (is.null(out)) {
-    stop(sprintf("Unknown Figurer output profile: %s", name), call. = FALSE)
-  }
+  if (is.null(out)) stop(sprintf("Unknown Figurer output profile: %s", name), call. = FALSE)
   out
 }
 
 figurer_theme_tokens <- function(name = "journal_clean", root = figurer_root()) {
   cfg <- .figurer_yaml("styles/themes.yml", root)
   out <- cfg$themes[[name]]
-  if (is.null(out)) {
-    stop(sprintf("Unknown Figurer theme: %s", name), call. = FALSE)
-  }
+  if (is.null(out)) stop(sprintf("Unknown Figurer theme: %s", name), call. = FALSE)
   out
 }
 
@@ -71,11 +65,24 @@ figurer_palette <- function(name = "qualitative_8", root = figurer_root()) {
   unlist(pal$colors, use.names = !is.null(names(pal$colors)))
 }
 
-figurer_identities <- function(group = "cell_classes", root = figurer_root()) {
+figurer_identities <- function(
+    group = "cell_classes",
+    root = figurer_root(),
+    include_aliases = TRUE) {
   cfg <- .figurer_yaml("styles/identities.yml", root)
   ids <- cfg[[group]]
   if (is.null(ids)) stop(sprintf("Unknown Figurer identity group: %s", group), call. = FALSE)
-  unlist(ids, use.names = TRUE)
+  out <- unlist(ids, use.names = TRUE)
+
+  if (identical(group, "cell_classes") && include_aliases && !is.null(cfg$common_aliases)) {
+    aliases <- unlist(cfg$common_aliases, use.names = TRUE)
+    for (alias in names(aliases)) {
+      canonical <- aliases[[alias]]
+      if (!is.null(out[[canonical]])) out[[alias]] <- out[[canonical]]
+    }
+  }
+
+  out
 }
 
 theme_figurer <- function(
@@ -166,16 +173,26 @@ scale_fill_figurer <- function(palette = "qualitative_8", ..., root = figurer_ro
   ggplot2::scale_fill_manual(values = figurer_palette(palette, root), ...)
 }
 
+scale_color_figurer_continuous <- function(
+    palette = "sequential_viridis_like", ..., root = figurer_root()) {
+  .figurer_require("ggplot2")
+  ggplot2::scale_color_gradientn(colors = figurer_palette(palette, root), ...)
+}
+
+scale_fill_figurer_continuous <- function(
+    palette = "sequential_viridis_like", ..., root = figurer_root()) {
+  .figurer_require("ggplot2")
+  ggplot2::scale_fill_gradientn(colors = figurer_palette(palette, root), ...)
+}
+
 scale_color_figurer_identity <- function(
-    group = "cell_classes",
-    ..., root = figurer_root()) {
+    group = "cell_classes", ..., root = figurer_root()) {
   .figurer_require("ggplot2")
   ggplot2::scale_color_manual(values = figurer_identities(group, root), ...)
 }
 
 scale_fill_figurer_identity <- function(
-    group = "cell_classes",
-    ..., root = figurer_root()) {
+    group = "cell_classes", ..., root = figurer_root()) {
   .figurer_require("ggplot2")
   ggplot2::scale_fill_manual(values = figurer_identities(group, root), ...)
 }
@@ -187,7 +204,7 @@ compose_figurer <- function(
     widths = NULL,
     heights = NULL,
     guides = "collect",
-    labels = "AUTO") {
+    tag_levels = "A") {
   .figurer_require("patchwork")
 
   patchwork::wrap_plots(
@@ -198,7 +215,7 @@ compose_figurer <- function(
     heights = heights,
     guides = guides
   ) +
-    patchwork::plot_annotation(tag_levels = labels)
+    patchwork::plot_annotation(tag_levels = tag_levels)
 }
 
 save_figurer <- function(
