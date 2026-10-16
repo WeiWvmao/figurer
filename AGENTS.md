@@ -1,122 +1,105 @@
 # Instructions for AI and Code Agents
 
-Figurer is intended to be developed and used heavily by AI agents. These rules are mandatory for automated contributions.
+Figurer is intended to be used heavily by AI agents. Keep it practical, lightweight, and reusable.
 
 ## 1. Read the charter first
 
-Before adding or changing plotting code, read `PROJECT_CHARTER.md`.
+Before adding or changing plotting code, read `PROJECT_CHARTER.md` and `docs/REFERENCE_STACK.md`.
 
-If a requested implementation conflicts with the charter, do not silently implement the conflict. Either:
+If an implementation conflicts with the charter, update the design deliberately rather than silently drifting.
 
-- adapt the implementation to the charter, or
-- explicitly update the charter and record the architectural rationale in `docs/DECISIONS.md`.
+## 2. Reuse before invention
 
-## 2. Never generate one-off styling when a reusable token belongs in the style system
+Before writing a new renderer, ask whether a mature upstream package already solves the problem.
 
-Do not hard-code fonts, colors, line widths, marker sizes, margins, legend formatting, or export dimensions inside individual recipes unless the value is intrinsically part of that geometry.
+Default building blocks include:
 
-Prefer named style tokens, semantic identities, and output profiles.
+- R: ggplot2, patchwork/cowplot, ComplexHeatmap, ggdist, ggbeeswarm, scCustomize, dittoSeq
+- Python: matplotlib, scanpy, plotnine, SciencePlots, Marsilea, PyComplexHeatmap
 
-Bad:
+Figurer should standardize and compose these tools, not recreate them.
 
-```python
-ax.spines['left'].set_linewidth(1.3)
-ax.tick_params(labelsize=8)
-color = '#2B6F9F'
-```
+## 3. Keep the core thin
 
-inside every plotting function.
+Do not create a new abstraction layer merely because one is possible.
 
-Preferred:
+A project-local adapter is acceptable when the input data are specific to that project. Promote it into Figurer only when the plotting grammar is reusable or recurring.
 
-```text
-style.axis.line_width
-style.typography.tick
-identity.endothelial
-```
+Do not block useful work on packaging, CLI design, cross-language parity, or a universal schema.
 
-with backend adapters resolving those tokens.
+## 4. Style belongs in centralized configuration
 
-## 3. Keep project-specific content outside the core
+Do not scatter fonts, colors, line widths, marker sizes, margins, legend formatting, or export dimensions throughout project plotting scripts.
 
-Do not embed sample names, cohort names, patient IDs, gene lists, file paths, project-specific labels, or project-specific colors in generic library code.
+Use:
 
-If an example requires such content, place it in a gallery/example data file and keep the recipe generic.
+- `styles/themes.yml`
+- `styles/palettes.yml`
+- `styles/identities.yml`
+- `profiles/output_profiles.yml`
 
-## 4. Classify every addition
+Recipe-specific overrides are allowed when required by the geometry or scientific meaning.
 
-Before creating code, decide whether the requested feature is primarily a:
+## 5. Do not force one data structure
 
-- recipe
-- reusable component
-- style token/theme
-- semantic identity registry entry
-- output profile
-- schema/data contract
-- backend adapter
-- AI skill/prompt
+Use the simplest natural contract for the figure:
 
-Do not solve all requests by adding another plotting script.
+- tidy tables for ordinary plots;
+- matrices + annotations for heatmaps;
+- coordinate tables for spatial/embedding plots;
+- model-summary tables for clinical figures;
+- native Seurat/AnnData/etc. objects when mature upstream plotting APIs make this easier.
 
-## 5. Preserve semantic/backend separation
+## 6. Choose the strongest backend
 
-Scientific meaning and data contracts should be defined independently of the renderer whenever practical.
+Use R or Python according to figure quality and integration cost.
 
-Backend-specific code belongs in backend-specific modules. Shared YAML/JSON/TOML configuration should not contain executable language-specific code.
+Typical choices:
 
-## 6. Prefer stable public APIs
+- statistical manuscript plots -> R/ggplot2
+- multi-panel ggplot figures -> patchwork/cowplot
+- heavily annotated heatmaps -> ComplexHeatmap
+- AnnData/Scanpy-native embeddings/spatial -> Python
+- Python complex heatmaps -> Marsilea/PyComplexHeatmap
 
-Downstream projects should call documented public interfaces. Avoid requiring imports from internal/private modules.
+Do not force symmetrical R/Python implementations.
 
-When a public API must change, use semantic versioning and document the change.
+## 7. Whole-figure quality matters
 
-## 7. Every stable recipe needs a gallery example
+Inspect:
 
-For a recipe to be considered stable, add or update:
+- visual hierarchy;
+- panel size and order;
+- typography;
+- whitespace;
+- alignment;
+- legends;
+- annotation collisions;
+- stable color semantics;
+- physical output dimensions.
 
-- a minimal reproducible example
-- representative input data or generated fixture
-- a rendered reference output
-- documentation of required fields
-- tests for basic rendering/export
+A technically correct plot is not automatically a good figure.
 
-## 8. Whole-figure quality matters
+## 8. Preserve scientific meaning
 
-When reviewing output, inspect:
+Never beautify a figure by silently changing filtering, statistics, axis meaning, uncertainty, clustering, or underlying values.
 
-- typography hierarchy
-- alignment
-- whitespace
-- panel balance
-- legend placement
-- annotation collisions
-- target physical dimensions
-- color contrast
-- semantic consistency across panels
-
-A technically correct set of panels is not automatically a publication-quality figure.
+Any transformation used only for visualization should be explicit.
 
 ## 9. Export deliberately
 
-Always make output target explicit. Do not assume that a figure intended for a manuscript should use the same dimensions and font scale as a slide.
+Use the named output profiles. Prefer PDF/SVG for vector-friendly figures. Rasterize dense points or histology layers when useful while preserving text and axes as vectors when possible.
 
-Prefer vector output for line art. Rasterize only elements that benefit from it, such as extremely dense point clouds or histology images.
+## 10. Review the rendered output
 
-## 10. Scientific integrity
+Do not stop after code executes. Inspect the rendered figure. Fix clipped text, overlaps, weak hierarchy, unreadable legends, or poor panel balance.
 
-Do not beautify a figure by silently modifying the underlying data, statistical result, filtering threshold, axis meaning, or uncertainty representation.
+Use `prompts/FIGURE_REVIEW.md` when a systematic second pass is useful.
 
-Rendering functions should be deterministic given the same data, configuration, version, backend, and seed.
+## 11. Feed successful patterns back
 
-## 11. Reuse before invention
+When a downstream project produces a genuinely reusable figure pattern, add the compact recipe/helper/guidance to Figurer. Do not copy project paths, patient IDs, sample names, or highly specific biological assumptions into the core.
 
-When another project asks for a figure:
+## 12. Avoid needless process
 
-1. search Figurer for an existing recipe;
-2. reuse or extend it if the scientific grammar matches;
-3. create a new reusable recipe only when the grammar is genuinely new;
-4. avoid project-local ad-hoc plotting code whenever a Figurer abstraction can reasonably cover the use case.
-
-## 12. Keep an architectural decision trail
-
-Record meaningful architecture changes in `docs/DECISIONS.md`, including rejected alternatives when they are likely to recur.
+This project supports ongoing research; it should not demand repeated human approval for routine improvements. Make reasonable reversible choices, document durable decisions, and keep moving.
