@@ -11,6 +11,8 @@
   if (is.null(x) || length(x) == 0) y else x
 }
 
+.figurer_pt_to_mm <- function(x) as.numeric(x) * 25.4 / 72
+
 .figurer_require <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     stop(sprintf("Figurer requires package '%s' for this operation.", pkg), call. = FALSE)
@@ -95,8 +97,8 @@ theme_figurer <- function(
   p <- figurer_profile(profile, root)
 
   line_scale <- p$line_scale %||% 1
-  axis_lw <- as.numeric(t$axis_line_width_pt) * line_scale
-  tick_lw <- as.numeric(t$tick_line_width_pt) * line_scale
+  axis_lw <- .figurer_pt_to_mm(t$axis_line_width_pt) * line_scale
+  tick_lw <- .figurer_pt_to_mm(t$tick_line_width_pt) * line_scale
 
   ggplot2::theme_classic(
     base_size = as.numeric(p$base_size_pt),
