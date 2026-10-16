@@ -1,0 +1,60 @@
+version: 1
+
+profiles:
+  paper_single_column:
+    width_mm: 89
+    height_mm: 70
+    base_size_pt: 7.5
+    title_size_pt: 8.5
+    axis_title_size_pt: 7.5
+    tick_size_pt: 6.8
+    legend_size_pt: 6.8
+    panel_label_size_pt: 9.5
+    line_scale: 1.0
+    point_scale: 1.0
+    dpi: 600
+
+  paper_double_column:
+    width_mm: 180
+    height_mm: 120
+    base_size_pt: 8.0
+    title_size_pt: 9.5
+    axis_title_size_pt: 8.0
+    tick_size_pt: 7.2
+    legend_size_pt: 7.2
+    panel_label_size_pt: 10.5
+    line_scale: 1.0
+    point_scale: 1.0
+    dpi: 600
+
+  paper_full_width:
+    width_mm: 180
+    height_mm: 170
+    base_size_pt: 8.2
+    title_size_pt: 9.8
+    axis_title_size_pt: 8.2
+    tick_size_pt: 7.3
+    legend_size_pt: 7.3
+    panel_label_size_pt: 10.8
+    line_scale: 1.0
+    point_scale: 1.0
+    dpi: 600
+
+  slides_16x9:
+    width_mm: 338.7
+    height_mm: 190.5
+    base_size_pt: 17
+    title_size_pt: 23
+    axis_title_size_pt: 18
+    tick_size_pt: 15
+    legend_size_pt: 15
+    panel_label_size_pt: 22
+    line_scale: 1.5
+    point_scale: 1.5
+    dpi: 300
+
+policy:
+  - Dimensions are defaults, not journal-specific mandates.
+  - Override height when the scientific layout requires it; preserve profile typography unless there is a clear reason not to.
+  - For raster-heavy spatial figures, use 300-600 dpi according to physical size and file-size constraints.
+  - For line art, prefer PDF/SVG rather than relying on high DPI.
