@@ -128,7 +128,7 @@ fig_grouped_distribution <- function(
       width = 0.28,
       outlier.shape = NA,
       fill = tokens$panel_background,
-      linewidth = as.numeric(tokens$axis_line_width_pt) * line_scale,
+      linewidth = .figurer_pt_to_mm(tokens$axis_line_width_pt) * line_scale,
       alpha = 0.9
     )
   }
@@ -197,7 +197,7 @@ fig_bubble <- function(
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
       panel.grid.major = ggplot2::element_line(
         color = grid_color,
-        linewidth = as.numeric(tokens$reference_line_width_pt) * line_scale
+        linewidth = .figurer_pt_to_mm(tokens$reference_line_width_pt) * line_scale
       )
     )
 }
